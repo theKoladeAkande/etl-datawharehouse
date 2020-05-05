@@ -2,7 +2,8 @@ import psycopg2
 import config
 from connection_manger import dbconnection_manager, psycopg2_error_handler
 import sql_queries
-from cluster_manager import (create_ec2_resource, create_iam_access, create_s3_resource, launch_redshift_cluster)
+from cluster_manager import (create_ec2_resource, create_iam_access,
+                             create_s3_resource, launch_redshift_cluster)
 
 @psycopg2_error_handler
 def data_definition(query: str, cursor, execute_many=False, data=None):
@@ -19,15 +20,19 @@ def data_definition(query: str, cursor, execute_many=False, data=None):
         cursor.execute(query)
 
     if "DROP" in query:
-        print('Table dropped  succesfuly')
+        print('Table dropped  successfully')
     elif "CREATE" in query:
-        print("Table created successfuly")
+        print("Table created successfully")
 
 def resource_creator():
-    create_ec2_resource()
-    s3 = create_s3_resource()
-    create_iam_access()
-    launch_redshift_cluster()
+        """
+        Creates the  necessary resources required to launch
+        redshift clusters
+        """
+        create_ec2_resource()
+        s3 = create_s3_resource()
+        create_iam_access()
+        launch_redshift_cluster()
 
 if __name__ == "__main__":
 
