@@ -5,26 +5,39 @@ import config
 
 
 def create_ec2_resource():
+    """
+    Connects to aws user to get resources for
+    ec2.
+    """
     global ec2
     ec2 = boto3.resource('ec2',
-                        region_name='us-west-2',
-                        aws_access_key_id=config.KEY,
-                        aws_secret_access_key=config.SECRET,
+                         region_name='us-west-2',
+                         aws_access_key_id=config.KEY,
+                         aws_secret_access_key=config.SECRET,
                         )
 
 
 
 def create_s3_resource():
+    """
+    Connects to  aws user to get resources for
+    s3.
+    """
     global s3
     s3 = boto3.resource('s3',
-                     region_name = 'us-west-2',
-                     aws_access_key_id=config.KEY,
-                     aws_secret_access_key=config.SECRET,
-                     )
+                        region_name = 'us-west-2',
+                        aws_access_key_id=config.KEY,
+                        aws_secret_access_key=config.SECRET)
     return s3
 
 
 def create_iam_access():
+    """
+    Connects to aws user to get resources for
+    iam privileges, creates iam role to allow redshift
+    cluster access aws services, enables redshift read
+    only access to s3
+    """
     global iam
     global roleArn
     iam = boto3.client('iam',
@@ -63,11 +76,18 @@ def create_iam_access():
 
 
 def launch_redshift_cluster():
+    """
+    Connects to  aws user to get resources for redshift,
+    creates redshift cluster with iam privleges, connects
+    to clusters to get information for configurations,
+    opens up TCP port for access to redshift from third-party
+    softwares
+    """
     global redshift
     redshift = boto3.client('redshift',
-                       region_name="us-west-2",
-                       aws_access_key_id=config.KEY,
-                       aws_secret_access_key=config.SECRET
+                            region_name="us-west-2",
+                            aws_access_key_id=config.KEY,
+                            aws_secret_access_key=config.SECRET
                        )
     try:
         response = redshift.create_cluster(
@@ -88,7 +108,7 @@ def launch_redshift_cluster():
     except Exception as e:
         print(e)
 
-
+    #try connecting to cluster, if available if not wait and try again
     not_available = True
     while not_available:
         try:
@@ -124,8 +144,9 @@ def launch_redshift_cluster():
 
 
 def teardown_redshift_cluster():
+    """ Tears down redshift clusters"""
     try:
-        redshift.delete_cluster( ClusterIdentifier=config.DWH_CLUSTER_IDENTIFIER,
+        redshift.delete_cluster(ClusterIdentifier=config.DWH_CLUSTER_IDENTIFIER,
                                 SkipFinalClusterSnapshot=True)
         print('Redshift cluster deleted')
     except Exception as e:
@@ -133,6 +154,7 @@ def teardown_redshift_cluster():
 
 
 def remove_iam_access():
+    """ Delete roles and detach policies"""
     iam.detach_role_policy(RoleName=config.DWH_IAM_ROLE_NAME,
                            PolicyArn="arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess")
     iam.delete_role(RoleName=config.DWH_IAM_ROLE_NAME)
